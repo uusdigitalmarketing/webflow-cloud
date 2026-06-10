@@ -1,0 +1,253 @@
+---
+import Layout from '../layouts/Layout.astro';
+import FileUploader from '../components/FileUploader';
+import { getMountPath } from '../utils/mountPath';
+
+const mountPath = getMountPath(Astro.locals);
+---
+
+<Layout>
+  <main>
+    <div id="login-container">
+      <div class="card">
+        <h1>Protected</h1>
+
+        <form id="login-form">
+          <input type="text" id="username" placeholder="Username" required />
+          <input type="password" id="password" placeholder="Password" required />
+          <button type="submit">Continue</button>
+          <p id="error"></p>
+        </form>
+
+      </div>
+    </div>
+
+    <div id="uploader" style="display:none;">
+      <FileUploader client:load mountPath={mountPath} />
+    </div>
+  </main>
+</Layout>
+
+<script>
+  const SESSION_KEY = "admin_session";
+  const SESSION_DURATION = 24 * 60 * 60 * 1000;
+
+  function checkSession() {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return false;
+    try {
+      const { loginAt } = JSON.parse(raw);
+      if (Date.now() - loginAt < SESSION_DURATION) {
+        return true;
+      } else {
+        localStorage.removeItem(SESSION_KEY);
+        return false;
+      }
+    } catch {
+      localStorage.removeItem(SESSION_KEY);
+      return false;
+    }
+  }
+
+  function saveSession() {
+    localStorage.setItem(SESSION_KEY, JSON.stringify({ loginAt: Date.now() }));
+  }
+
+  function showUploader() {
+    document.getElementById("login-container").style.display = "none";
+    document.getElementById("uploader").style.display = "block";
+  }
+
+  if (checkSession()) {
+    showUploader();
+  }
+
+  const form = document.getElementById("login-form");
+  const error = document.getElementById("error");
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const user = (document.getElementById("username") as HTMLInputElement).value;
+    const pass = (document.getElementById("password") as HTMLInputElement).value;
+
+    if (user === "admin" && pass === "UnidosUpload") {
+      saveSession();
+      showUploader();
+    } else {
+      error.textContent = "Invalid credentials";
+    }
+  });
+</script>
+
+<style>
+  :root {
+  --primary: #5d7309;
+  --primary-light: #7d9812;
+  --primary-bright: #a3c92c;
+  --primary-dark: #3f4f06;
+}
+
+main {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  position: relative;
+
+  background:
+    radial-gradient(circle at top left,
+      rgba(163,201,44,.35),
+      transparent 30%),
+    radial-gradient(circle at bottom right,
+      rgba(93,115,9,.35),
+      transparent 40%),
+    linear-gradient(
+      135deg,
+      #050702 0%,
+      #111907 40%,
+      #1a260a 100%
+    );
+}
+
+main::before,
+main::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+}
+
+main::before {
+  width: 500px;
+  height: 500px;
+  background: #a3c92c;
+  opacity: .18;
+  top: -200px;
+  left: -100px;
+}
+
+main::after {
+  width: 450px;
+  height: 450px;
+  background: #5d7309;
+  opacity: .25;
+  right: -100px;
+  bottom: -100px;
+}
+
+.card {
+  position: relative;
+  z-index: 2;
+
+  width: 460px;
+  padding: 42px;
+
+  border-radius: 30px;
+
+  background: rgba(255,255,255,.05);
+
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+
+  border: 1px solid rgba(163,201,44,.15);
+
+  box-shadow:
+    0 20px 80px rgba(0,0,0,.45),
+    inset 0 1px 1px rgba(255,255,255,.15);
+}
+
+
+h1 {
+  text-align: center;
+  color: white;
+  margin-bottom: 8px;
+  font-size: 34px;
+  letter-spacing: -1px;
+}
+
+.subtitle {
+  text-align: center;
+  color: rgba(255,255,255,.65);
+  margin-bottom: 30px;
+}
+
+input {
+  width: 100%;
+  box-sizing: border-box;
+
+  padding: 15px 18px;
+  margin-bottom: 14px;
+
+  border-radius: 14px;
+
+  border: 1px solid rgba(255,255,255,.08);
+
+  background: rgba(255,255,255,.04);
+
+  color: white;
+  font-size: 15px;
+
+  transition: .25s ease;
+}
+
+input::placeholder {
+  color: rgba(255,255,255,.4);
+}
+
+input:focus {
+  outline: none;
+
+  border-color: #a3c92c;
+
+  box-shadow:
+    0 0 0 4px rgba(163,201,44,.12);
+}
+
+button {
+  width: 100%;
+
+  padding: 15px;
+
+  border: none;
+  border-radius: 14px;
+
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  background:
+    linear-gradient(
+      135deg,
+      #a3c92c,
+      #7d9812,
+      #5d7309
+    );
+
+  transition: all .25s ease;
+}
+
+button:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 15px 35px rgba(163,201,44,.25);
+}
+
+#error {
+  color: #ff7b7b;
+  text-align: center;
+  margin-top: 15px;
+}
+
+.footer {
+  margin-top: 24px;
+  text-align: center;
+  color: rgba(255,255,255,.45);
+  font-size: 13px;
+}
+
+</style>
