@@ -303,7 +303,7 @@ export default function FileUploader({ mountPath = "/" }: FileUploaderProps) {
             </p>
           </div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1rem" }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {files.map((file, index) => {
               const fileName = file.name || file.key || "Unknown file";
               const fileKey = file.key || file.name || `file-${index}`;
