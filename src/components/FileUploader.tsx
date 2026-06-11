@@ -57,6 +57,45 @@ export default function FileUploader({ mountPath = "/" }: FileUploaderProps) {
     return filename.match(/\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i) !== null;
   };
 
+  const deleteFile = async (key: string) => {
+  const confirmed = window.confirm(
+    "Are you sure you want to delete this file?"
+  );
+
+  if (!confirmed) return;
+
+  try {
+    const response = await fetch(
+      new URL("api/delete-asset", apiBase),
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          key,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Delete failed");
+    }
+
+    setFiles((prev) =>
+      prev.filter(
+        (file) =>
+          (file.key || file.name) !== key
+      )
+    );
+
+    alert("File deleted successfully");
+  } catch (error) {
+    console.error(error);
+    alert("Failed to delete file");
+  }
+};
+
   const loadFiles = async () => {
     try {
       setLoading(true);
@@ -319,27 +358,48 @@ export default function FileUploader({ mountPath = "/" }: FileUploaderProps) {
                       {formatDate(uploadDate)}
                     </p>
                     
-                    <a
-                      href={fileLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        display: "inline-block", padding: "6px 12px",
-                        background: "linear-gradient(135deg, rgba(163,201,44,0.22), rgba(93,115,9,0.22))",
-                        border: "1px solid rgba(163,201,44,0.28)",
-                        color: "#a3c92c", textDecoration: "none",
-                        borderRadius: "4px", fontSize: "0.8rem", fontWeight: "500",
-                        transition: "background-color 0.3s ease",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = "linear-gradient(135deg, rgba(163,201,44,0.38), rgba(93,115,9,0.35))";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = "linear-gradient(135deg, rgba(163,201,44,0.22), rgba(93,115,9,0.22))";
-                      }}
-                    >
-                      View
-                    </a>
+                    <div
+  style={{
+    display: "flex",
+    gap: "8px",
+    marginTop: "10px",
+  }}
+>
+  <a
+    href={fileLink}
+    target="_blank"
+    rel="noopener noreferrer"
+    style={{
+      display: "inline-block",
+      padding: "6px 12px",
+      background:
+        "linear-gradient(135deg, rgba(163,201,44,0.22), rgba(93,115,9,0.22))",
+      border: "1px solid rgba(163,201,44,0.28)",
+      color: "#a3c92c",
+      textDecoration: "none",
+      borderRadius: "4px",
+      fontSize: "0.8rem",
+      fontWeight: "500",
+    }}
+  >
+    View
+  </a>
+
+  <button
+    onClick={() => deleteFile(fileKey)}
+    style={{
+      padding: "6px 12px",
+      background: "#dc2626",
+      color: "#fff",
+      border: "none",
+      borderRadius: "4px",
+      cursor: "pointer",
+      fontSize: "0.8rem",
+    }}
+  >
+    Delete
+  </button>
+</div>
                   </div>
                 </div>
               );
